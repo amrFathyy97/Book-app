@@ -1,32 +1,17 @@
-import express from "express";
-import { Request, Response, NextFunction } from "express"
+import validate, { IBook } from './../util/Book-Validator';
+
+import { Request, Response, NextFunction } from "express";
+
 import { Book } from "../Entities/Book";
+
 import { AppDataSource } from "../data-source";
+
 import { handlingAsyncFN } from "../middlewares/asyncHandler";
+
 import { CustomError } from "../classes/CustomError";
-import Ajv, { JSONSchemaType } from "ajv";
+
 import { Author } from "../Entities/Author";
 
-
-interface IBook {
-    title: string;
-    price: number;
-    authorId?: number;
-}
-
-const ajv = new Ajv();
-
-const schema: JSONSchemaType<IBook> = {
-    type: "object",
-    properties: {
-        title: {type: "string", minLength: 5, maxLength: 100},
-        price: {type: "number", minimum: 5, maximum: 1000},
-        authorId: {type: "number"}
-    },
-    required: ["title", "price"]
-};
-
-const validate = ajv.compile(schema);
 
 AppDataSource
     .initialize()

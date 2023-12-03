@@ -1,32 +1,16 @@
-import Ajv, { JSONSchemaType }  from "ajv";
 import { AppDataSource } from "../data-source";
+
 import { Request, Response, NextFunction } from "express";
+
 import { Author } from "../Entities/Author";
+
 import { handlingAsyncFN } from "../middlewares/asyncHandler";
+
 import { CustomError } from "../classes/CustomError";
 
+import { IAuthor } from "../util/Author-Validator";
 
-
-const ajv = new Ajv();
-
-type Auth = {
-    fname: string,
-    lname: string,
-    nationality: string
-}
-
-const schema: JSONSchemaType<Auth> = {
-    type: "object",
-    properties: {
-        fname: {"type": "string"},
-        lname: {"type": "string"},
-        nationality: {"type": "string"}
-    },
-    required: ["fname", "lname", "nationality"]
-}
-
-const validate = ajv.compile(schema)
-
+import validate from "../util/Author-Validator";
 
 AppDataSource
     .initialize()
@@ -40,7 +24,7 @@ AppDataSource
 
 export const getAllAuthors = handlingAsyncFN(
     async (req: Request, res: Response, next: NextFunction) => {
-    const authors: Auth[] = await AppDataSource.getRepository(Author).query('SELECT * FROM author');
+    const authors: IAuthor[] = await AppDataSource.getRepository(Author).query('SELECT * FROM author');
     if(authors.length < 1) {
         const err = new CustomError("No authors found", 404, "Failure" );
         return next(err);
@@ -54,7 +38,7 @@ export const getAllAuthors = handlingAsyncFN(
 
 export const getSingleAuthor = handlingAsyncFN(
     async (req: Request, res: Response, next: NextFunction) => {
-    const author: Auth[] = await AppDataSource.getRepository(Author).query(`SELECT * FROM author where id = ${req.params.id}`);
+    const author: IAuthor[] = await AppDataSource.getRepository(Author).query(`SELECT * FROM author where id = ${req.params.id}`);
     if(author.length < 1) {
         const err = new CustomError("Author not found", 404, "Failure");
         return next(err);
@@ -90,7 +74,7 @@ export const updateAuthor = handlingAsyncFN (
             const err = await new CustomError(validate.errors[0].message, 404, "Failure");
             next(err)
         }
-        const author: Auth[] = await AppDataSource.getRepository(Author).query(`SELECT * FROM author where id = ${req.params.id}`);
+        const author: IAuthor[] = await AppDataSource.getRepository(Author).query(`SELECT * FROM author where id = ${req.params.id}`);
         if(author.length < 1) {
             const err = await new CustomError("No author found", 404, "Failure");
             return next(err)
@@ -108,7 +92,7 @@ export const updateAuthor = handlingAsyncFN (
 
 export const deleteAuthor = handlingAsyncFN(
     async (req: Request, res: Response, next: NextFunction) => {
-        const author: Auth[] = await AppDataSource.getRepository(Author).query(`SELECT * FROM author where id = ${req.params.id}`);
+        const author: IAuthor[] = await AppDataSource.getRepository(Author).query(`SELECT * FROM author where id = ${req.params.id}`);
         if(author.length < 1) {
             const err = new CustomError("Author not found", 404, "Failure");
             return next(err)
